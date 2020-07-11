@@ -13,6 +13,11 @@
 
 // Put your code here.
 
+(BEGINNING)
+
+@filled
+M=-1
+
 @16384
 D=A
 
@@ -25,13 +30,24 @@ D=A
 @count
 M=D
 
-(LOOP)
-
-@address
+@KBD
 D=M
 
-A=D
-M=-1
+@LOOP
+D;JGT
+
+@filled
+M=0
+
+(LOOP)
+
+@filled
+D=M
+
+@address
+A=M
+
+M=D
 
 @address
 M=M+1
@@ -44,5 +60,6 @@ D=M
 D;JGT
 
 (END)
-@END
+
+@BEGINNING
 0;JMP
