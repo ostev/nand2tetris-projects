@@ -1,0 +1,21 @@
+CHIP ToJumpOrNotToJump {
+    IN j[3], zr, ng;
+    OUT out;
+
+    PARTS:
+    // Is it greater than zero?
+    Not(in=ng, out=notng);
+    Not(in=zr, out=notzr);
+    And(a=notng, b=notzr, out=gz);
+    And(a=gz, b=j[0], out=x);
+
+    // Is it equal to zero?
+    And(a=zr, b=j[1], out=y);
+
+    // Is it less than zero?
+    And(a=ng, b=j[2], out=z);
+
+    // To jump or not to jump?
+    Or(a=x, b=y, out=oxy);
+    Or(a=oxy, b=z, out=out);
+}
