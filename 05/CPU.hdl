@@ -39,5 +39,42 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // Some setup
+    Not(in=instruction[15], out=nottype);
+
+    // The A register
+    Mux16(a=outM1, b=instruction, sel=nottype, out=value);
+    Or(a=instruction[5], b=nottype, out=loada);
+    ARegister(in=value, load=loada, out=outa);
+    
+    // Should we deal in As, or in Ms?
+    Mux16(a=outa, b=inM, sel=instruction[12], out=am);
+
+    // Time to compute some arithmetic
+    ALU(x=outd,
+        y=am,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=outM1,
+        zr=zr,
+        ng=ng);
+
+    // The D register
+    And(a=instruction[4], b=instruction[15], out=loadd);
+    DRegister(in=outM1, load=loadd, out=outd);
+
+    // The counter
+    ToJumpOrNotToJump(j=instruction[0..2], zr=zr, ng=ng, out=j);
+    And(a=j, b=instruction[15], out=jump);
+    Not(in=jump, out=notjump);
+    PC(in=outa, load=jump, inc=notjump, reset=reset, out[0..14]=pc);
+
+    // Write to the remaining output pins
+    And16(a=outM1, b=outM1, out=outM);
+    And(a=instruction[3], b=instruction[15], out=writeM);
+    And16(a=outa, b=outa, out[0..14]=addressM);
 }
