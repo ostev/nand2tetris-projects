@@ -1,0 +1,9 @@
+[package]
+name = "jackal"
+version = "0.1.0"
+authors = ["Oscar Stevens <oscar_stevens@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
