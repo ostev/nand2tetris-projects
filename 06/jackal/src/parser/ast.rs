@@ -1,3 +1,8 @@
+
+
+pub type Number = u16;
+
+#[derive(PartialEq, std::fmt::Debug)]
 pub enum Symbol {
     SP,
     LCL,
@@ -11,16 +16,19 @@ pub enum Symbol {
     Custom(String)
 }
 
+#[derive(PartialEq, std::fmt::Debug)]
 pub enum Register {
     A,
     D
 }
 
+#[derive(PartialEq, std::fmt::Debug)]
 pub enum ComputationDestination {
     Register(Register),
     Memory
 }
 
+#[derive(PartialEq, std::fmt::Debug)]
 pub enum ComputationDestinations {
     None,
     One(ComputationDestination),
@@ -31,27 +39,43 @@ pub enum ComputationDestinations {
         ComputationDestination)
 }
 
-pub struct Computation {
-    use_a_register: bool,
-    c1: bool,
-    c2: bool,
-    c3: bool,
-    c4: bool,
-    c5: bool,
-    c6: bool
+#[derive(PartialEq, std::fmt::Debug)]
+pub enum Input {
+    Register(Register),
+    Memory,
+    Zero,
+    One,
+    NegativeOne
 }
 
-pub enum Jump {
-    None,
-    Jump {
-        if_greater_than: bool,
+#[derive(PartialEq, std::fmt::Debug)]
+pub struct Computation {
+    pub x: Input,
+    pub y: Option<Input>
+}
+
+#[derive(PartialEq, std::fmt::Debug)]
+pub struct Jump {
+    if_greater_than: bool,
+    if_equal_to: bool,
+    if_less_than: bool
+}
+
+impl Jump {
+    pub fn new(if_greater_than: bool,
         if_equal_to: bool,
-        if_less_than: bool
+        if_less_than: bool) -> Jump {
+            return Jump {
+                if_greater_than,
+                if_equal_to,
+                if_less_than
+            }
     }
 }
 
+#[derive(PartialEq, std::fmt::Debug)]
 pub enum Command {
-    Address(i16),
+    Address(Number),
     Compute(Computation,
         ComputationDestinations,
         Jump)

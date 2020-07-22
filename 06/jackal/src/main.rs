@@ -1,3 +1,5 @@
+mod parser;
+
 fn main() {
-    println!("hello");
+    println!("{:#?}", parser::parse_command("M=5+5"))
 }
