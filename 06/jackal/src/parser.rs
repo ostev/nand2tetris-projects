@@ -5,16 +5,30 @@ use ast::*;
 
 pub type ParsingResult = Result<Command, ParseError>;
 
-pub type LineNumber = isize;
-pub type ColNumber = isize;
+pub type LineNumber = usize;
+pub type ColNumber = usize;
 
 #[derive(PartialEq, std::fmt::Debug)]
 pub enum ParseError {
-    Unexpected(String, LineNumber, ColNumber),
+    Unexpected(String, ColNumber),
     RegexConstructionError(regex::Error),
     IntegerParsingError(std::num::ParseIntError),
+    InputExpected,
     CommandExpected,
     GenericParseError
+}
+
+fn parse_input(input: regex::Match) -> Result<Input, ParseError> {
+    return match input.as_str() {
+        "0" => Ok(Input::Zero),
+        "1" => Ok(Input::One),
+        "-1" => Ok(Input::NegativeOne),
+        "A" => Ok(Input::Register(Register::A)),
+        "D" => Ok(Input::Register(Register::D)),
+        "M" => Ok(Input::Memory),
+        "" => Err(ParseError::InputExpected),
+        other => Err(ParseError::Unexpected(other.to_string(), input.start()))
+    };
 }
 
 pub fn parse_command(command: &str) -> ParsingResult {
@@ -23,7 +37,7 @@ pub fn parse_command(command: &str) -> ParsingResult {
     }
 
     let re_option = Regex::new(
-        r"^((@(?P<address>\d+)|((?P<destination>D|M|A)=)?((?P<x>0|1|-1|D|M|A)((-|\+)(?P<y>0|1|-1|D|M|A))?)))");
+        r"^((@(?P<address>.*)|((?P<destination>.)=)?((?P<x>.)((-|\+)(?P<y>.))?)))");
 
     let command_no_whitespace: String = command.chars().filter(|c| !c.is_whitespace()).collect();
 
@@ -43,68 +57,51 @@ pub fn parse_command(command: &str) -> ParsingResult {
 
         let destinations = cap.name("destination")
                         .map(|destination| match destination.as_str() {
-                            "A" => ComputationDestinations::One(ComputationDestination::Register(Register::A)),
-                            "D" => ComputationDestinations::One(ComputationDestination::Register(Register::D)),
-                            "M" => ComputationDestinations::One(ComputationDestination::Memory),
-                            &_ => todo!(" ")
+                            "A" => Ok(ComputationDestinations::One(ComputationDestination::Register(Register::A))),
+                            "D" => Ok(ComputationDestinations::One(ComputationDestination::Register(Register::D))),
+                            "M" => Ok(ComputationDestinations::One(ComputationDestination::Memory)),
+                            other => Err(ParseError::Unexpected(other.to_string(), destination.start()))
                         });
         
-        let x = cap.name("x")
-                .map(|x| match x.as_str() {
-                    "0" => Input::Zero,
-                    "1" => Input::One,
-                    "-1" => Input::NegativeOne,
-                    "A" => Input::Register(Register::A),
-                    "D" => Input::Register(Register::D),
-                    "M" => Input::Memory,
-                    &_ => unreachable!()
-                });
+        let x = cap.name("x").map(parse_input);
         
-        let y = cap.name("y")
-                .map(|y| match y.as_str() {
-                    "0" => Input::Zero,
-                    "1" => Input::One,
-                    "-1" => Input::NegativeOne,
-                    "A" => Input::Register(Register::A),
-                    "D" => Input::Register(Register::D),
-                    "M" => Input::Memory,
-                    &_ => unreachable!()
-                });
-        
-        if let Some(Ok(a)) = address {
-            // Addressing command
-            return Some(Ok(a));
-        } else if let Some(x) = x {
-            println!("hello");
-            if let Some(outputs) = destinations {
-                return
-                    Some(
-                        Ok(
-                            Command::Compute(
-                                Computation {
-                                    x,
-                                    y
-                                },
-                                outputs,
-                                Jump::new(false,false,false)
+        let y = cap.name("y").map(parse_input);
+
+        if let Some(addr) = address {
+            return Some(addr);
+        } else if let Some(maybe_x) = x {
+            match maybe_x {
+                Ok(x_value) =>
+                    return match y {
+                        Some(Ok(y_value)) =>
+                            Some(
+                                Ok(
+                                    Command::Compute(
+                                        Computation {
+                                            x: x_value, y: Some(y_value)
+                                        },
+                                        ComputationDestinations::None,
+                                        Jump::new(false, false, false)
+                                    )
+                                )
+                            ),
+                        Some(Err(err)) => return Some(Err(err)),
+                        None =>
+                            Some(
+                                Ok(
+                                    Command::Compute(
+                                        Computation {
+                                            x: x_value, y: None
+                                        },
+                                        ComputationDestinations::None,
+                                        Jump::new(false, false, false)
+                                    )
+                                )
                             )
-                        )
-                    );
-            } else {
-                return
-                    Some(
-                        Ok(
-                            Command::Compute(
-                                Computation {
-                                    x,
-                                    y
-                                },
-                                ComputationDestinations::None,
-                                Jump::new(false,false,false)
-                            )
-                        )
-                    );
+                    },   
+                Err(err) => return Some(Err(err))
             }
+            
         } else {
             return None;
         }
