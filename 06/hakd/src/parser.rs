@@ -31,13 +31,25 @@ fn parse_input(input: regex::Match) -> Result<Input, ParseError> {
     };
 }
 
+fn match_destinations(destinations:
+    Option<Result<ComputationDestinations, ParseError>>) -> ComputationDestinations {
+    match destinations {
+        Some(Ok(dest))
+            => dest,
+        Some(Err(_)) => ComputationDestinations::None,
+        None => ComputationDestinations::None
+    }
+}
+
 pub fn parse_command(command: &str) -> ParsingResult {
+    // TODO: Implement jump parsing
+
     if command == "" {
         return Err(ParseError::CommandExpected);
     }
 
     let re_option = Regex::new(
-        r"^((@(?P<address>.*)|((?P<destination>.)=)?((?P<x>.)((-|\+)(?P<y>.))?)))");
+        r"^((@(?P<address>.*)|((?P<destination>.)=)?((?P<x>.)((-|\+)(?P<y>.))?))(;(?P<jmp>...)?))");
 
     let command_no_whitespace: String = command.chars().filter(|c| !c.is_whitespace()).collect();
 
@@ -80,7 +92,7 @@ pub fn parse_command(command: &str) -> ParsingResult {
                                         Computation {
                                             x: x_value, y: Some(y_value)
                                         },
-                                        ComputationDestinations::None,
+                                        match_destinations(destinations),
                                         Jump::new(false, false, false)
                                     )
                                 )
@@ -93,7 +105,7 @@ pub fn parse_command(command: &str) -> ParsingResult {
                                         Computation {
                                             x: x_value, y: None
                                         },
-                                        ComputationDestinations::None,
+                                        match_destinations(destinations),
                                         Jump::new(false, false, false)
                                     )
                                 )
@@ -127,14 +139,41 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn parses_computation_command() {
-    //     for j in ["M=", "D=", "A=", ""].iter() {
-    //         for k in ["M", "D", "A", "-1", "0", "1"].iter() {
-    //             for l in ["M", "M", "D", "A", "-1", "0", "1"].iter() {
-    //                 let parsed = parse_command(&(l));
-    //             }
-    //         }
-    //     }
-    // }
+    #[test]
+    fn parses_computation_command() {
+        assert_eq!(
+            parse_command("M=M+1"),
+            Ok(
+                Command::Compute(
+                    Computation {
+                        x: Input::Memory,
+                        y: Some(
+                            Input::One,
+                        ),
+                    },
+                    ComputationDestinations::One(
+                        ComputationDestination::Memory
+                    ),
+                    Jump::new(false, false, false),
+                ),
+            )
+        );
+        assert_eq!(
+            parse_command("D=M+0"),
+            Ok(
+                Command::Compute(
+                    Computation {
+                        x: Input::Memory,
+                        y: Some(
+                            Input::Zero,
+                        ),
+                    },
+                    ComputationDestinations::One(
+                        ComputationDestination::Register(Register::D)
+                    ),
+                    Jump::new(false, false, false),
+                ),
+            )
+        );
+    }
 }
