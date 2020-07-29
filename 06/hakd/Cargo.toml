@@ -1,5 +1,5 @@
 [package]
-name = "jackal"
+name = "hackd"
 version = "0.1.0"
 authors = ["Oscar Stevens <oscar_stevens@icloud.com>"]
 edition = "2018"
