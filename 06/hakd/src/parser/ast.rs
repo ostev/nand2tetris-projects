@@ -1,8 +1,6 @@
+pub type Address = u16;
 
-
-pub type Number = u16;
-
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub enum Symbol {
     SP,
     LCL,
@@ -16,19 +14,19 @@ pub enum Symbol {
     Custom(String)
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub enum Register {
     A,
     D
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub enum ComputationDestination {
     Register(Register),
     Memory
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub enum ComputationDestinations {
     None,
     One(ComputationDestination),
@@ -39,7 +37,7 @@ pub enum ComputationDestinations {
         ComputationDestination)
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub enum Input {
     Register(Register),
     Memory,
@@ -48,23 +46,24 @@ pub enum Input {
     NegativeOne
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub struct Computation {
     pub x: Input,
-    pub y: Option<Input>
+    pub y: Option<Input>,
+    pub jump: Jump
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub struct Jump {
-    if_greater_than: bool,
-    if_equal_to: bool,
-    if_less_than: bool
+    pub if_greater_than: bool,
+    pub if_equal_to: bool,
+    pub if_less_than: bool
 }
 
 impl Jump {
-    pub fn new(if_greater_than: bool,
+    pub fn new(if_less_than: bool,
         if_equal_to: bool,
-        if_less_than: bool) -> Jump {
+        if_greater_than: bool) -> Jump {
             return Jump {
                 if_greater_than,
                 if_equal_to,
@@ -73,10 +72,9 @@ impl Jump {
     }
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, std::fmt::Debug, Clone)]
 pub enum Command {
-    Address(Number),
+    Address(Address),
     Compute(Computation,
-        ComputationDestinations,
-        Jump)
+        ComputationDestinations)
 }
