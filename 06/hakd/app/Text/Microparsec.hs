@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase, DeriveFunctor #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, DeriveFunctor, TupleSections #-}
 
 module Text.Microparsec
     (Parser)
@@ -22,7 +22,7 @@ newtype Parser a = Parser
     } deriving (Functor)
 
 instance Applicative Parser where
-    pure f = Parser f
+    pure result = Parser $ \state -> (state, Right result)
 
 instance Monad Parser where
     (>>=) = ""
