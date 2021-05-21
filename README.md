@@ -4,7 +4,7 @@ These are my solutions to the [Nand2Tetris course](https://www.nand2tetris.org/)
 
 ## Completed and incomplete
 
-* [x] Chapter 1 --- basic gates constructed from NAND
+* [x] Chapter 1 -- basic gates constructed from NAND
 * [x] Chapter 2 --- ALU and associated chips
 * [x] Chapter 3 --- RAM, registers and associated chips
 * [x] Chapter 4 --- some programs written in Hack assembly
