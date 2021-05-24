@@ -22,7 +22,17 @@ newtype Parser a = Parser
     } deriving (Functor)
 
 instance Applicative Parser where
-    pure result = Parser $ \state -> (state, Right result)
+    pure result = Parser (, Right result)
+
+    pf <*> p = Parser $ \state ->
+        case runParser pf state of
+            -- We can't just write `error@(_, Left _)` as that will
+            -- have a **more specific type**,
+            -- `(State, Either Error (a -> b))`
+            -- instead of `(State, Either Error c)`
+            (s', Left err) -> (s', Left err)
+
+            (s', Right f) -> fmap f <$> runParser p s'
 
 instance Monad Parser where
     (>>=) = ""
