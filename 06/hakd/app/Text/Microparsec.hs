@@ -1,16 +1,21 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase, DeriveFunctor, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, TupleSections #-}
 
 module Text.Microparsec
     ( Parser
     , anyChar
-    , eof
-    , char )
+    , end)
     where
 
 import qualified Data.Text as Text
 import Data.Text (Text)
+import Data.String (IsString)
+import Data.Bifunctor
 
-data ParseableChars = SpecificChar Char | SpecificChars Text | AnyChars | NoChars
+data ParseableChars = SpecificChar Char
+                    | SpecificText Text
+                    | AnyText
+                    | NoText
+                    | SatisfiesDescription Text
 
 data Error = Error
     { expected :: ParseableChars
@@ -22,7 +27,13 @@ newtype State = State
 
 newtype Parser a = Parser
     { runParser :: State -> (State, Either Error a)
-    } deriving (Functor)
+    }
+
+instance Functor Parser where
+    fmap f (Parser g) = Parser $ \s ->
+        case g s of
+            (s', Left err) -> (s', Left err)
+            (s', Right x) -> (s', Right $ f x)
 
 instance Applicative Parser where
     pure result = Parser (, Right result)
@@ -46,23 +57,42 @@ instance Monad Parser where
 
 anyChar :: Parser Char
 anyChar = Parser $ \case
-    (State "") -> (State "", Left $ Error AnyChars NoChars)
+    (State "") -> (State "", Left $ Error AnyText NoText)
     (State xs) -> (State $ Text.tail xs, Right $ Text.head xs)
 
-eof :: Parser ()
-eof = Parser $ \state ->
+anyText :: Parser Text
+anyText = Parser $ \case
+    (State "") -> (State "", Left $ Error AnyText NoText)
+    (State xs) -> (State "", Right xs)
+
+end :: Parser ()
+end = Parser $ \state ->
     case state of
         State "" -> (state, Right ())
-        State xs -> (state, Left $ Error NoChars (SpecificChars xs))
+        State xs -> (state, Left $ Error NoText (SpecificText xs))
+
+parseError :: Error -> Parser a
+parseError err = Parser (, Left err)
+
+try :: Parser a -> Parser a
+try p = Parser $ \state ->
+    case runParser p state of
+        (_, Left err) -> (state, Left err)
+        success -> success
+
+satisfyChar :: Text -> (Char -> Bool) -> Parser Char
+satisfyChar description predicate = do
+    c <- anyChar
+    if predicate c
+        then pure c
+        else parseError $ Error (SatisfiesDescription description) (SpecificChar c)
+
+-- satisfyText :: Text -> (Text -> Bool) -> Parser Text
+-- satisfyText description predicate = do
+
 
 char :: Char -> Parser Char
-char x = Parser $ \case
-    (State "") -> (State "", Left $ Error AnyChars NoChars)
-    (State ys) ->
-        let
-            start = Text.head ys
-            end = Text.tail ys
-        in
-            if start == x
-                then (State end, Right start)
-                else (State end, Left $ Error (SpecificChar x) (SpecificChar start))
+char c = satisfyChar (Text.singleton c) (== c)
+
+-- text :: Text -> Parser Text
+-- text xs = 
