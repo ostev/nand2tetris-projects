@@ -1,5 +1,12 @@
 module Hack.Parse where
-    parse
 
-parse :: String -> AST
-parse = ""
+import Hack.AST
+import Text.Microparsec
+
+value :: Parser Value
+value 
+
+aInstruction :: Parser AInstruction
+aInstruction = do
+    _ <- char '@'
+    value
