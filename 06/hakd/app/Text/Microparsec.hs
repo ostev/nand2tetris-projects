@@ -1,13 +1,21 @@
 {-# LANGUAGE LambdaCase, TupleSections #-}
 
 module Text.Microparsec
-    ( Parser
+    ( Parser(..)
+    , Error(..)
+    , State(..)
+    , ParseableChars(..)
     , anyChar
-    , end)
+    , end
+    , parseError
+    , try
+    , satisfyChar
+    , char
+    , string)
     where
 
-import qualified Data.Text as Text
-import Data.Bifunctor
+import Control.Applicative ( Alternative(..) )
+import Control.Monad ( MonadPlus(..) )
 
 data ParseableChars = SpecificChar Char
                     | SpecificChars String
@@ -18,10 +26,11 @@ data ParseableChars = SpecificChar Char
 data Error = Error
     { expected :: ParseableChars
     , found :: ParseableChars
-    }
+    } | UnknownError
 
 newtype State = State
     { remaining :: String }
+    deriving (Eq)
 
 newtype Parser a = Parser
     { runParser :: State -> (State, Either Error a)
@@ -53,15 +62,23 @@ instance Monad Parser where
             (s', Left err) -> (s', Left err)
             (s', Right x) -> runParser (g x) s'
 
+instance Alternative Parser where
+    empty = Parser (, Left UnknownError)
+    p1 <|> p2 = Parser $ \s -> case runParser p1 s of
+        result@(s', Left _)
+            | s == s' -> runParser p2 s
+            | otherwise -> result
+        
+        success -> success
+
+instance MonadPlus Parser where
+    mzero = empty
+    mplus = (<|>)
+
 anyChar :: Parser Char
 anyChar = Parser $ \case
     (State "") -> (State "", Left $ Error AnyChars NoChars)
     (State (x:xs)) -> (State xs, Right x)
-
-anyChars :: Parser String
-anyChars = Parser $ \case
-    (State "") -> (State "", Left $ Error AnyChars NoChars)
-    (State xs) -> (State "", Right xs)
 
 end :: Parser ()
 end = Parser $ \state ->
