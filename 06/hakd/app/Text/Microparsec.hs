@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, TupleSections #-}
+{-# LANGUAGE LambdaCase, TupleSections, DerivingStrategies #-}
 
 module Text.Microparsec
     ( Parser(..)
@@ -26,11 +26,11 @@ data ParseableChars = SpecificChar Char
 data Error = Error
     { expected :: ParseableChars
     , found :: ParseableChars
-    } | UnknownError
+    }
 
 newtype State = State
     { remaining :: String }
-    deriving (Eq)
+    deriving stock (Eq)
 
 newtype Parser a = Parser
     { runParser :: State -> (State, Either Error a)
@@ -63,7 +63,7 @@ instance Monad Parser where
             (s', Right x) -> runParser (g x) s'
 
 instance Alternative Parser where
-    empty = Parser (, Left UnknownError)
+    empty = Parser (, Left (Error NoChars AnyChars))
     p1 <|> p2 = Parser $ \s -> case runParser p1 s of
         result@(s', Left _)
             | s == s' -> runParser p2 s
@@ -84,7 +84,7 @@ end :: Parser ()
 end = Parser $ \state ->
     case state of
         State "" -> (state, Right ())
-        State xs -> (state, Left $ Error NoChars (SpecificChars xs))
+        State xs -> (state, Left $ Error NoChars(SpecificChars xs))
 
 parseError :: Error -> Parser a
 parseError err = Parser (, Left err)
