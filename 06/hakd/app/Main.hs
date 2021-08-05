@@ -1,6 +1,6 @@
-module Main (main) where
+module Main where
 
-import Hack.Assemble
+import Lib
 
 main :: IO ()
-main = print $ assemble "D=2"
+main = someFunc
