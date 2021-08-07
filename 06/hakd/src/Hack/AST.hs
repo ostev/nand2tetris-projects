@@ -1,11 +1,10 @@
 module Hack.AST where
 
-import GHC.Int (Int16)
 
 import Hack.Symbol (Symbol)
 
 data Value  = VSymbol Symbol
-            | VConstant Int16
+            | VConstant Integer
 
 type Jump = Ordering
 

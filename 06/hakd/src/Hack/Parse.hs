@@ -1,12 +1,16 @@
 module Hack.Parse where
 
+import Control.Applicative (Alternative ((<|>)))
 import Hack.AST
 import Text.Microparsec
 
-value :: Parser Value
-value 
+constant :: Parser Int
+constant = int
 
-aInstruction :: Parser AInstruction
-aInstruction = do
-    _ <- char '@'
-    value
+-- value :: Parser Value
+-- value = constant <|> symbol
+
+-- aInstruction :: Parser AInstruction
+-- aInstruction = do
+--   _ <- char '@'
+--   value
