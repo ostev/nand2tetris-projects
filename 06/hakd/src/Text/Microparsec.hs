@@ -114,6 +114,16 @@ many1 p = liftA2 (:) p $ many p
 char :: Char -> Parser Char
 char c = satisfyChar [c] (== c)
 
+-- Convenience
+
+-- fromMaybeParser :: Error -> Parser (Maybe a) -> Parser a
+-- fromMaybeParser err p =
+--   p
+--     >>= ( \case
+--             Just y -> pure y
+--             Nothing -> parseError err
+--         )
+
 string :: String -> Parser String
 string = traverse char
 
@@ -121,4 +131,4 @@ digit :: Parser Char
 digit = satisfyChar "digit" isDigit
 
 int :: Parser Int
-int = read <$> many digit
+int = read <$> many1 digit

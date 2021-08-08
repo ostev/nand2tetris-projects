@@ -35,6 +35,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - hakd
+    when:
+      - condition: false
+        other-modules: Paths_hakd
 
 tests:
   hakd-test:

@@ -1,6 +1,6 @@
-module Hack.Symbol (Symbol (..)) where
+module Hack.Symbol (Symbol (..), PredefinedSymbol (..)) where
 
-data Symbol
+data PredefinedSymbol
   = A
   | D
   | M
@@ -27,5 +27,9 @@ data Symbol
   | R15
   | SCREEN
   | KBD
+  deriving (Show, Eq, Read)
+
+data Symbol
+  = Predefined PredefinedSymbol
   | Custom String
-  deriving (Show, Read)
+  deriving (Show, Eq)
