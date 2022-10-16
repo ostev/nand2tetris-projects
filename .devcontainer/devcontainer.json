@@ -1,0 +1,19 @@
+{
+  "name": "Ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "ubuntu-22.04"
+    }
+  },
+  // "forwardPorts": [4000],
+  // "postCreateCommand": "cabal build",
+  // "settings": {
+  //     "terminal.integrated.defaultProfile.linux": "/bin/bash" // set your favorite shell
+  // },
+  "extensions": [
+    "haskell.haskell",
+    "roblourens.vscode-nand2tetris-hdl"
+  ],
+  "remoteUser": "vscode"
+}
